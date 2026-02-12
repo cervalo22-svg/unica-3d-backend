@@ -1,0 +1,86 @@
+import express from "express";
+import multer from "multer";
+import cors from "cors";
+import dotenv from "dotenv";
+import OpenAI from "openai";
+import fs from "fs";
+
+dotenv.config();
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middlewares
+app.use(cors());
+app.use(express.json());
+
+// Upload temporário
+const upload = multer({ dest: "uploads/" });
+
+// OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Rota de teste (IMPORTANTE)
+app.get("/", (req, res) => {
+  res.send("Backend Única 3D rodando com sucesso 🚀");
+});
+
+// Rota principal
+app.post("/upload", upload.array("fotos", 5), async (req, res) => {
+  try {
+    const { nome, telefone, email, instagram, observacao } = req.body;
+    const fotos = req.files;
+
+    if (!fotos || fotos.length === 0) {
+      return res.status(400).json({ error: "Nenhuma foto enviada." });
+    }
+
+    const prompt = `
+Crie um personagem chibi 3D estilizado, com cabeça grande e corpo pequeno.
+Use as imagens fornecidas como referência fiel do rosto do cliente.
+
+Detalhes solicitados pelo cliente:
+${observacao}
+
+Estilo semirrealista, acabamento limpo, aparência de miniatura colecionável.
+    `;
+
+    // Converter imagens para base64
+    const imagesBase64 = fotos.map((file) =>
+      fs.readFileSync(file.path, { encoding: "base64" })
+    );
+
+    // Enviar para a IA
+    const result = await openai.images.generate({
+      model: "gpt-image-1",
+      prompt: prompt,
+      image: imagesBase64,
+      size: "1024x1024",
+    });
+
+    const imageBase64 = result.data[0].b64_json;
+    const imageBuffer = Buffer.from(imageBase64, "base64");
+
+    const outputPath = `uploads/resultado-${Date.now()}.png`;
+    fs.writeFileSync(outputPath, imageBuffer);
+
+    // Limpar uploads temporários
+    fotos.forEach((file) => fs.unlinkSync(file.path));
+
+    res.json({
+      success: true,
+      message: "Imagem gerada com sucesso!",
+      arquivo: outputPath,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erro ao processar imagens." });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Servidor rodando na porta ${port}`);
+});
