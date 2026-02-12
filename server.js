@@ -56,7 +56,7 @@ Estilo semirrealista, acabamento limpo, aparência de miniatura colecionável.
     const result = await openai.images.generate({
       model: "gpt-image-1",
       prompt: prompt,
-      image: imagesBase64,
+    
       size: "1024x1024",
     });
 
