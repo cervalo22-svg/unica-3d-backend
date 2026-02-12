@@ -47,10 +47,7 @@ ${observacao}
 Estilo semirrealista, acabamento limpo, aparência de miniatura colecionável.
     `;
 
-    // Converter imagens para base64
-    const imagesBase64 = fotos.map((file) =>
-      fs.readFileSync(file.path, { encoding: "base64" })
-    );
+
 
     // Enviar para a IA
     const result = await openai.images.generate({
