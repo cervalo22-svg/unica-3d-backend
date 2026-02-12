@@ -81,6 +81,11 @@ Estilo semirrealista, acabamento limpo, aparência de miniatura colecionável.
   }
 });
 
-app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
+app.listen(port, "0.0.0.0", () => {
+  console.log("Servidor rodando 🚀");
+  console.log("PORT:", port);
+  console.log(
+    "OPENAI_API_KEY existe?",
+    Boolean(process.env.OPENAI_API_KEY)
+  );
 });
