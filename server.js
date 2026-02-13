@@ -50,27 +50,24 @@ Estilo semirrealista, acabamento limpo, aparência de miniatura colecionável.
 
 
     // Enviar para a IA
-    const result = await openai.images.generate({
-      model: "gpt-image-1",
-      prompt: prompt,
-    
-      size: "1024x1024",
-    });
+   // Enviar para a IA
+const result = await openai.images.generate({
+  model: "gpt-image-1",
+  prompt: prompt,
+  size: "1024x1024",
+});
 
-    const imageBase64 = result.data[0].b64_json;
-    const imageBuffer = Buffer.from(imageBase64, "base64");
+// Pegar a imagem em base64
+const imageBase64 = result.data[0].b64_json;
 
-    const outputPath = `uploads/resultado-${Date.now()}.png`;
-    fs.writeFileSync(outputPath, imageBuffer);
+// Limpar uploads temporários
+fotos.forEach((file) => fs.unlinkSync(file.path));
 
-    // Limpar uploads temporários
-    fotos.forEach((file) => fs.unlinkSync(file.path));
-
-    res.json({
-      success: true,
-      message: "Imagem gerada com sucesso!",
-      arquivo: outputPath,
-    });
+// Retornar direto para o site
+res.json({
+  success: true,
+  imageBase64: imageBase64
+});
 
   } catch (error) {
     console.error(error);
