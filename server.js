@@ -38,13 +38,12 @@ app.post("/upload", upload.array("fotos", 5), async (req, res) => {
     }
 
     const prompt = `
-Crie um personagem chibi 3D estilizado, com cabeça grande e corpo pequeno.
-Use as imagens fornecidas como referência fiel do rosto do cliente.
+Um personagem chibi 3D estilizado, com cabeça grande e corpo pequeno, em estilo semirrealista. Reproduzir exatamente a pose da foto de referência. Manter os traços principais do rosto fiéis ao original, com um sorriso suave, olhos grandes e arredondados, e cabelo com aparência natural. Acabamento limpo e esculpido, com texturas detalhadas nos cabelos, roupas e acessórios. A figura deve estar sobre uma base lisa e plana, adequada para impressão em resina. Fundo neutro, iluminação suave, ângulo frontal levemente inclinado para valorizar o volume da cabeça e os detalhes da escultura.
 
 Detalhes solicitados pelo cliente:
 ${observacao}
 
-Estilo semirrealista, acabamento limpo, aparência de miniatura colecionável.
+
     `;
 
 
