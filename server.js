@@ -22,7 +22,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Rota de teste (IMPORTANTE)
+// Rota de teste
 app.get("/", (req, res) => {
   res.send("Backend Única 3D rodando com sucesso 🚀");
 });
@@ -37,36 +37,58 @@ app.post("/upload", upload.array("fotos", 5), async (req, res) => {
       return res.status(400).json({ error: "Nenhuma foto enviada." });
     }
 
+    // 👉 Usar a PRIMEIRA foto como referência principal
+    const fotoReferencia = fotos[0];
+
+    // Converter imagem para base64
+    const imageBase64Input = fs.readFileSync(fotoReferencia.path, {
+      encoding: "base64",
+    });
+
+    // 🔒 PROMPT MANTIDO EXATAMENTE COMO VOCÊ CRIOU
     const prompt = `
 Um personagem chibi 3D estilizado, com cabeça grande e corpo pequeno, em estilo semirrealista. Reproduzir exatamente a pose da foto de referência. Manter os traços principais do rosto fiéis ao original, com um sorriso suave, olhos grandes e arredondados, e cabelo com aparência natural. Acabamento limpo e esculpido, com texturas detalhadas nos cabelos, roupas e acessórios. A figura deve estar sobre uma base lisa e plana, adequada para impressão em resina. Fundo neutro, iluminação suave, ângulo frontal levemente inclinado para valorizar o volume da cabeça e os detalhes da escultura.
 
 Detalhes solicitados pelo cliente:
 ${observacao}
+`;
 
+    // 🔥 CHAMADA CORRETA: TEXTO + IMAGEM
+    const response = await openai.responses.create({
+      model: "gpt-4.1",
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: prompt },
+            {
+              type: "input_image",
+              image_url: `data:image/jpeg;base64,${imageBase64Input}`,
+            },
+          ],
+        },
+      ],
+    });
 
-    `;
+    // Extrair imagem gerada
+    const imageOutput = response.output
+      .flatMap((o) => o.content)
+      .find((c) => c.type === "output_image");
 
+    if (!imageOutput || !imageOutput.image_base64) {
+      throw new Error("IA não retornou imagem.");
+    }
 
+    const finalImageBase64 = imageOutput.image_base64;
 
-    // Enviar para a IA
-   // Enviar para a IA
-const result = await openai.images.generate({
-  model: "gpt-image-1",
-  prompt: prompt,
-  size: "1024x1024",
-});
+    // Limpar uploads temporários
+    fotos.forEach((file) => fs.unlinkSync(file.path));
 
-// Pegar a imagem em base64
-const imageBase64 = result.data[0].b64_json;
-
-// Limpar uploads temporários
-fotos.forEach((file) => fs.unlinkSync(file.path));
-
-// Retornar direto para o site
-res.json({
-  success: true,
-  imageBase64: imageBase64
-});
+    // Retornar para o frontend
+    res.json({
+      success: true,
+      imageBase64: finalImageBase64,
+    });
 
   } catch (error) {
     console.error(error);
